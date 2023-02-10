@@ -458,6 +458,8 @@ class ModbusClient(object):
             self._req_except_handler(e)
             return None
 
+    # change bit_value from boolean to value support adam-6060
+    # True -> 0xff00 , False -> 0x0000
     def write_single_coil(self, bit_addr, bit_value):
         """Modbus function WRITE_SINGLE_COIL (0x05).
 
@@ -474,7 +476,11 @@ class ModbusClient(object):
         # make request
         try:
             # format "bit value" field for PDU
-            bit_value_raw = (0x0000, 0xff00)[bool(bit_value)]
+            # bit_value_raw = (0x0000, 0xff00)[bool(bit_value)]
+            if bit_value:
+                bit_value_raw = 0xff00
+            else:
+                bit_value_raw = 0x0000
             # make a request
             tx_pdu = struct.pack('>BHH', WRITE_SINGLE_COIL, bit_addr, bit_value_raw)
             rx_pdu = self._req_pdu(tx_pdu=tx_pdu, rx_min_len=5)
